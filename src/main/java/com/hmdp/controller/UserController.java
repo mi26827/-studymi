@@ -9,6 +9,7 @@ import com.hmdp.entity.User;
 import com.hmdp.entity.UserInfo;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
+import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.UserHolder;
 import io.reactivex.Single;
 import lombok.Getter;
@@ -64,9 +65,12 @@ public class UserController {
      * @return 无
      */
     @PostMapping("/logout")
-    public Result logout(){
+    public Result logout(@RequestHeader(value = "authorization", required = false) String token){
+        if (token != null && !token.trim().isEmpty()) {
+            redisTemplate.delete(RedisConstants.LOGIN_USER_KEY + token);
+        }
         UserHolder.removeUser();
-        return Result.fail("功能未完成");
+        return Result.ok();
     }
 
     @GetMapping("/me")

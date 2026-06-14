@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local Nginx runtime files ###
+frontend/nginx-1.18.0/logs/
+frontend/nginx-1.18.0/temp/
+frontend/nginx-1.18.0/nginx.pid

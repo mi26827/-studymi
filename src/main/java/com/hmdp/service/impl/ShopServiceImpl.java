@@ -69,8 +69,14 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
         //用逻辑过期解决缓存击穿
         // Shop shop = queryWithLogicalExpire(id);
-        Shop shop = clientClient.
-                queryWithLogicalExpire(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
+        Shop shop = clientClient.queryWithPassThrough(
+                CACHE_SHOP_KEY,
+                id,
+                Shop.class,
+                this::getById,
+                CACHE_SHOP_TTL,
+                TimeUnit.MINUTES
+        );
         if(shop==null){
 
             return Result.fail("店铺不存在！");
@@ -267,8 +273,11 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
                         new Distance(5000),
                         RedisGeoCommands.GeoSearchCommandArgs.newGeoSearchArgs().includeDistance().limit(end)
                 );
-        if(results==null){
-            return Result.ok(Collections.emptyList());
+        if(results==null || results.getContent().isEmpty()){
+            Page<Shop> page = query()
+                    .eq("type_id", typeId)
+                    .page(new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE));
+            return Result.ok(page.getRecords());
         }
         //4.解析出id
         List<GeoResult<RedisGeoCommands.GeoLocation<String>>> list = results.getContent();
